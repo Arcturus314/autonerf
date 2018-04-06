@@ -5,37 +5,37 @@
  * Pusher   : 6
  * 
  * CONTROL
- * Trigger  : 7
- * Spin up  : 8
- * Pusher In: 9
+ * Trigger  : 3
+ * Spin up  : 4
+ * Pusher In: 2
  * 
  * SETUP
- * RPM select      : 2
- * Velocity select : 3
- * Burst select    : 4
+ * RPM select      : 2 7 right
+ * Velocity select : 3 8 center
+ * Burst select    : 4 9 left
  * 
- * RPM display     : 10
- * Velocity display: 16
- * Burst display   : 14
+ * RPM display     : 15 right
+ * Velocity display: 16 center
+ * Burst display   : 14 left
  * 
  * SYSTEM HEALTH
  * Battery voltage : 18 / A0
- * Health LED      : 15
+ * Health LED      : 10
  */
 
 #define FLYWHEEL_MOTOR 5
 #define PUSHER_MOTOR   6
-#define FIRE_TRIGGER   7
-#define SPIN_TRIGGER   8
-#define PUSHER_IN      9 //HIGH when pusher is in
-#define RPM_SEL        2
-#define VEL_SEL        3
-#define BURST_SEL      4
-#define RPM_DISPLAY    10
+#define FIRE_TRIGGER   3
+#define SPIN_TRIGGER   4
+#define PUSHER_IN      2 //HIGH when pusher is in
+#define RPM_SEL        7
+#define VEL_SEL        8
+#define BURST_SEL      9
+#define HEALTH_DISPLAY 10
 #define VEL_DISPLAY    16
 #define BURST_DISPLAY  14
 #define BAT_VOLT       18
-#define HEALTH_DISPLAY 15
+#define RPM_DISPLAY    15 
 
 #define LOW_RPM   150 //analogWrite value for low RPM mode
 #define LOW_VEL   150 //analogWrite value for high RPM mode
@@ -71,28 +71,33 @@ void setup() {
   digitalWrite(HEALTH_DISPLAY, HIGH);
   delay(500);
   digitalWrite(HEALTH_DISPLAY, LOW);
+
+  //debugging
+  Serial.begin(9600);
 }
 
 void loop() {
-  //motor testing
+  /*//motor testing
   digitalWrite(FLYWHEEL_MOTOR, HIGH);
   digitalWrite(PUSHER_MOTOR, LOW);
   delay(1000);
   digitalWrite(FLYWHEEL_MOTOR, LOW);
   digitalWrite(PUSHER_MOTOR, HIGH);
-  delay(1000);
-}
-/*
+  delay(1000);*/
+
   //actual code
 
   //fully automatic
   if(burst == false) {
+    Serial.println("Full auto");
     //Pusher control
     if(digitalRead(PUSHER_IN) == LOW) {
+      Serial.println("Pusher extended");
       set_pusher(true);
       pusher_extended = 1;
     }
     else if(digitalRead(FIRE_TRIGGER) == LOW) {
+      Serial.println("Firing");
       if(flywheels_on == 0) {
         set_flywheels(true);
         flywheels_on = 1;
@@ -109,24 +114,31 @@ void loop() {
 
   //Flywheel control
   if(digitalRead(SPIN_TRIGGER) == LOW && flywheels_on == 0) {
+    Serial.println("Trigger pulled");
     set_flywheels(true);
     flywheels_on = 1;
   }
   else if(digitalRead(FIRE_TRIGGER) == HIGH && digitalRead(SPIN_TRIGGER) == HIGH) {
+    Serial.println("Turning off flywheels");
     set_flywheels(false);
     flywheels_on = 0;
   }
 
   //3-round burst mode
   if(burst == true && digitalRead(FIRE_TRIGGER) == LOW) {
+    Serial.println("3 round burst mode, firing");
     //setting flywheels
     if(flywheels_on == 0) {
+      Serial.println("Turning on flywheels");
       set_flywheels(true);
       flywheels_on = 1;
       delay(200);
     }
     //firing
     for(int num = 0; num < 3; num++) {
+      Serial.print("firing number ");
+      Serial.print(num);
+      Serial.println("");
       if(pusher_extended == 0) {
         set_pusher(true);
         pusher_extended = 1;
@@ -197,4 +209,4 @@ void check_health() {
   else {
     digitalWrite(HEALTH_DISPLAY, LOW);
   }
-} */
+}
